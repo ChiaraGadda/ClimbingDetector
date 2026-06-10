@@ -33,3 +33,5 @@ Thumbs.db
 
 # Windows batch / scripts (se vuoi ignorare output temporanei)
 *.tmp
+
+video.mp4
