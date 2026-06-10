@@ -3,6 +3,8 @@ import mediapipe as mp
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+from datetime import datetime
+import os
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -10,15 +12,25 @@ mp_pose = mp.solutions.pose
 
 cap = None  # globale
 
-
-# ---------------- LOGICA ORIGINALE ----------------
-
 def cont():
     global cap
 
     if cap is None or not cap.isOpened():
         print("Errore: video non aperto")
         return
+
+    # ---- crea nome file con data e ora ----
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    filename = f"webcam/{timestamp}.avi"
+
+    # ---- codec e writer ----
+    fourcc = cv2.VideoWriter_fourcc(*"XVID")
+
+    fps = 60.0
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    out = cv2.VideoWriter(filename, fourcc, fps, (frame_width, frame_height))
 
     with mp_pose.Pose(
         min_detection_confidence=0.5,
@@ -40,6 +52,21 @@ def cont():
                 mp_pose.POSE_CONNECTIONS,
                 landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style()
             )
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            cv2.putText(
+                image,
+                timestamp,
+                (10, 30),  # posizione in alto a sinistra
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (0, 255, 0),  # verde
+                2,
+                cv2.LINE_AA
+            )
+
+            # ---- Mette le scritte nel video ----
+            out.write(image)
 
             cv2.imshow("ClimbVision Pose", cv2.flip(image, 1))
 
@@ -47,6 +74,7 @@ def cont():
                 break
 
     cap.release()
+    out.release()
     cv2.destroyAllWindows()
 
 
