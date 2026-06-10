@@ -34,12 +34,7 @@ Thumbs.db
 # Windows batch / scripts (se vuoi ignorare output temporanei)
 *.tmp
 
-video.mp4
-
-v0.py
-
 git.txt
-
-wallpaper.mp4
-
 webcam/
+media/
+main2.py
