@@ -35,6 +35,5 @@ Thumbs.db
 *.tmp
 
 git.txt
-webcam/
+analized/
 media/
-main2.py
