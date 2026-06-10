@@ -1,63 +1,74 @@
 import cv2
 import mediapipe as mp
+import tkinter as tk
 
-# setup
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
-print("Scegli sorgente video:")
-print("1 - Webcam")
-print("2 - Video file (.mp4)")
+cap = None  # globale
 
-choice = input("Inserisci scelta (1/2): ")
+def cont():
+    global cap
 
-if choice == "1":
-    cap = cv2.VideoCapture(0)  # webcam
-    print("Webcam avviata...")
+    if cap is None or not cap.isOpened():
+        print("Errore: video non aperto")
+        return
 
-elif choice == "2":
-    video_path = input("Inserisci nome file video (es: video.mp4): ")
-    cap = cv2.VideoCapture(video_path)
-    print(f"Video caricato: {video_path}")
+    with mp_pose.Pose(
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5
+    ) as pose:
 
-else:
-    print("Scelta non valida")
-    exit()
+        while cap.isOpened():
+            success, image = cap.read()
+            if not success:
+                break
 
-if not cap.isOpened():
-    print("Errore: impossibile aprire la sorgente video")
-    exit()
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            results = pose.process(image)
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-with mp_pose.Pose(
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-) as pose:
+            mp_drawing.draw_landmarks(
+                image,
+                results.pose_landmarks,
+                mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style()
+            )
 
-    while cap.isOpened():
-        success, image = cap.read()
-        if not success:
-            print("Fine video o frame non disponibile")
-            break
+            cv2.imshow("Pose", cv2.flip(image, 1))
 
-        image.flags.writeable = False
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = pose.process(image)
+            if cv2.waitKey(5) & 0xFF == 27:
+                break
 
-        image.flags.writeable = True
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    cap.release()
+    cv2.destroyAllWindows()
 
-        mp_drawing.draw_landmarks(
-            image,
-            results.pose_landmarks,
-            mp_pose.POSE_CONNECTIONS,
-            landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style()
-        )
 
-        cv2.imshow('MediaPipe Pose Estimation', cv2.flip(image, 1))
+def cam():
+    global cap
+    cap = cv2.VideoCapture(0)
+    print("Webcam avviata")
+    cont()
 
-        if cv2.waitKey(5) & 0xFF == 27:
-            break
 
-cap.release()
-cv2.destroyAllWindows()
+def fi():
+    global cap
+    cap = cv2.VideoCapture("video.mp4")
+    print("Video caricato")
+    cont()
+
+
+# GUI
+finestra = tk.Tk()
+finestra.title("Seleziona sorgente")
+
+frame = tk.Frame(finestra)
+frame.pack()
+
+tk.Label(frame, text="Seleziona la fonte").pack()
+
+tk.Button(frame, text="Webcam", command=cam).pack()
+tk.Button(frame, text="Video mp4", command=fi).pack()
+
+finestra.mainloop()
