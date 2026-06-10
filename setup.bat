@@ -13,6 +13,6 @@ python -m pip install --upgrade pip
 pip install mediapipe==0.10.9 opencv-python
 
 echo ===== AVVIO PROGRAMMA =====
-python v0.py
+python main.py
 
 pause
